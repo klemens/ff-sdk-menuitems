@@ -44,6 +44,7 @@ exports.testMIDoesExist = function(test) {
   test.assertEqual(menuitem.getAttribute("checked"), 'false', 'menuitem not checked');
   test.assertEqual(menuitem.getAttribute('autocheck'), 'false', 'menuitem autocheck is false');
   test.assertEqual(menuitem.hasAttribute('type'), false, 'menuitem hasn\'t explicit type');
+  test.assertEqual(menuitem.hasAttribute('observes'), false, 'menuitem don\'t observe anything');
   mi.destroy();
   test.assert(!$(options.id), 'menuitem is gone');
   test.assertEqual(menuitem.parentNode, null, 'menuitem has no parent');
