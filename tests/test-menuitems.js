@@ -7,6 +7,8 @@ const windowUtils = require("window-utils");
 const menuitems = require("menuitems");
 const { Cc, Ci } = require("chrome");
 
+const NS_XUL = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+
 let window = windowUtils.activeBrowserWindow;
 let document = window.document;
 function $(id) document.getElementById(id);
@@ -234,4 +236,28 @@ exports.testMICheckboxOnClickWithAutoCheck = function(test) {
   $(options.menuid).openPopupAtScreen(0, 0, false);
   var utils = win.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils);
   utils.sendKeyEvent("keypress", Ci.nsIDOMKeyEvent.DOM_VK_Z, Ci.nsIDOMKeyEvent.DOM_VK_Z, null);
+};
+
+exports.testMICheckboxObserves = function(test) {
+  var broadcaster = window.document.createElementNS(NS_XUL, "broadcaster");
+  broadcaster.setAttribute("id", "menuitemObservesTestBroadcaster");
+  broadcaster.setAttribute("label", "MenuitemObservesTest");
+  var parent = window.document.getElementById("mainBroadcasterSet");
+  parent.insertBefore(broadcaster, null)
+
+  let options = {
+    id: "test-mi-checkbox-onclick-observes",
+    observes: "menuitemObservesTestBroadcaster",
+    menuid: 'menu_FilePopup'
+  };
+
+  var mi = createMI(options, test);
+  let menuitem = $(options.id);
+  test.assertEqual(!!menuitem, true, 'menuitem exists');
+
+  test.assertEqual(menuitem.getAttribute("label"), "MenuitemObservesTest")
+  broadcaster.setAttribute("label", "MenuitemObservesTest2");
+  test.assertEqual(menuitem.getAttribute("label"), "MenuitemObservesTest2")
+
+  parent.removeChild(broadcaster);
 };
