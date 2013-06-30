@@ -5,6 +5,7 @@
 
 const windowUtils = require("window-utils");
 const menuitems = require("menuitems");
+const { Cc, Ci } = require("chrome");
 
 let window = windowUtils.activeBrowserWindow;
 let document = window.document;
@@ -102,7 +103,7 @@ exports.testMIDisabled = function(test) {
   var mi = createMI(options, test);
   let menuitem = $(options.id);
   test.assertEqual(!!menuitem, true, 'menuitem exists');
-  test.assertEqual(menuitem.getAttribute('disabled'), 'true', 'menuitem not disabled');
+  test.assertEqual(menuitem.getAttribute('disabled'), 'true', 'menuitem disabled');
   menuitem.dispatchEvent(e);
   mi.disabled = false;
   test.assertEqual(menuitem.getAttribute('disabled'), 'false', 'menuitem not disabled');
@@ -171,4 +172,66 @@ exports.testInsertBeforeDoesNotExist = function(test) {
   test.assertEqual(!!menuitem, true, 'menuitem exists');
   test.assertEqual(menuitem.nextSibling, null, 'menuitem not disabled');
   mi.destroy();
+};
+
+exports.testMICheckboxOnClick = function(test) {
+  test.waitUntilDone();
+
+  let options = {
+    id: "test-mi-checkbox-onclick",
+    label: "test",
+    menuid: 'menu_FilePopup',
+    type: "checkbox",
+    autocheck: false,
+    checked: false,
+    accesskey: 'z',
+    onCommand: function() {
+      test.assertEqual(menuitem.getAttribute("checked"), 'false', 'menuitem has not been checked automatically');
+      test.assertEqual(mi.checked, false, 'menuitem has not been checked automatically');
+      mi.destroy();
+      test.pass('onclick worked!');
+      test.done();
+    }
+  };
+
+  var mi = createMI(options, test);
+  let menuitem = $(options.id);
+  test.assertEqual(!!menuitem, true, 'menuitem exists');
+
+  var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
+  var win = wm.getMostRecentWindow(null);
+  $(options.menuid).openPopupAtScreen(0, 0, false);
+  var utils = win.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils);
+  utils.sendKeyEvent("keypress", Ci.nsIDOMKeyEvent.DOM_VK_Z, Ci.nsIDOMKeyEvent.DOM_VK_Z, null);
+};
+
+exports.testMICheckboxOnClickWithAutoCheck = function(test) {
+  test.waitUntilDone();
+
+  let options = {
+    id: "test-mi-checkbox-onclick-autocheck",
+    label: "test",
+    menuid: 'menu_FilePopup',
+    type: "checkbox",
+    autocheck: true,
+    checked: false,
+    accesskey: 'z',
+    onCommand: function() {
+      test.assertEqual(menuitem.getAttribute("checked"), 'true', 'menuitem has been checked automatically');
+      test.assertEqual(mi.checked, true, 'menuitem has been checked automatically');
+      mi.destroy();
+      test.pass('autocheck worked!');
+      test.done();
+    }
+  };
+
+  var mi = createMI(options, test);
+  let menuitem = $(options.id);
+  test.assertEqual(!!menuitem, true, 'menuitem exists');
+
+  var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
+  var win = wm.getMostRecentWindow(null);
+  $(options.menuid).openPopupAtScreen(0, 0, false);
+  var utils = win.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils);
+  utils.sendKeyEvent("keypress", Ci.nsIDOMKeyEvent.DOM_VK_Z, Ci.nsIDOMKeyEvent.DOM_VK_Z, null);
 };
